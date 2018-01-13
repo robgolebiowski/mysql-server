@@ -45,6 +45,10 @@ namespace keyring
       my_free(p);
     }
   };
+
+typedef std::basic_string<char, std::char_traits<char>, Secure_allocator<char> > Secure_string;
+typedef std::basic_ostringstream<char, std::char_traits<char>, Secure_allocator<char> > Secure_ostringstream;
+
 } // namespace keyring
 
 #endif // MYSQL_VAULT_MEMORY

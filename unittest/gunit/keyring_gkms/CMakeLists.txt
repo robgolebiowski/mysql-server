@@ -28,6 +28,7 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms
   ${CMAKE_SOURCE_DIR}/plugin/keyring/common
   ${CMAKE_SOURCE_DIR}/unittest/gunit
+  ${CMAKE_SOURCE_DIR}/unittest/gunit/keyring
 )
 
 SET(TESTS

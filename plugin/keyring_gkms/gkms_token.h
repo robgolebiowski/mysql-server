@@ -8,7 +8,7 @@ namespace keyring
 class Gkms_token
 {
 public:
-  Gkms_token(ConfMap conf_map)
+  Gkms_token(ConfMap &conf_map)
     : conf_map(conf_map)
   {}
 
