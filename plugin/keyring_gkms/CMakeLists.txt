@@ -41,6 +41,7 @@ MYSQL_ADD_PLUGIN(keyring_gkms
                  ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keys_container.cc
                  ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keyring_impl.cc
                  gkms_conf_parser.cc
+                 gkms_token.cc
                  #vault_io.cc
                  #vault_key.cc
                  #vault_base64.cc
