@@ -34,11 +34,10 @@ namespace keyring {
 
 typedef std::map<std::string, std::string> ConfMap;
 
-//TODO: Czy lista powinna być predefinowana, żeby sprawdzić czy wszystkie potrzebne wartości zostały uzupełnione
-
 class Gkms_conf_parser
 {
 public:
+
   Gkms_conf_parser(ILogger *logger)
     : logger(logger)
   {}
@@ -77,7 +76,7 @@ protected:
     for (const auto& elem : conf_map)
       if (elem.second.empty())
       {
-        std::string err_msg("Configuration file do not contain field: ");
+        std::string err_msg("Configuration file does not contain field: ");
         err_msg += elem.first;
         logger->log(MY_ERROR_LEVEL, err_msg.c_str());
         return true;
