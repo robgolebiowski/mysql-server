@@ -4,27 +4,87 @@
 #include <string>
 #include <fstream>
 #include <map>
+#include "logger.h"
 
 namespace keyring {
+
+//class ConfMap
+//{
+//public:
+  //ConfMap(ILogger *logger)
+    //: logger(logger)
+  //{}
+
+  //bool validate()
+  //{
+    //for (const auto& elem : conf_map)
+    //{
+      //if (elem.second.empty())
+      //{
+        //logger->log( 
+      //}
+    //}
+  //}
+//private:
+  //ILogger *logger;
+  //std::map<std::string, std::string> conf_map {{"iss",""}, {"scope",""}, {"aud",""}, {"private_key",""}};
+//};
+
+
+
+typedef std::map<std::string, std::string> ConfMap;
+
+//TODO: Czy lista powinna być predefinowana, żeby sprawdzić czy wszystkie potrzebne wartości zostały uzupełnione
 
 class Gkms_conf_parser
 {
 public:
-  typedef std::map<std::string, std::string> ConfMap;
+  Gkms_conf_parser(ILogger *logger)
+    : logger(logger)
+  {}
 
   bool parse_file(std::string &conf_file_path, ConfMap &conf_map)
   {
+    fill_conf_map_with_required_keys(conf_map);
+
     std::ifstream fs;
     fs.open(conf_file_path.c_str(), std::fstream::in);
     std::string line, key, value;
     while(std::getline(fs, line))
     {
       parse_line(line, key, value);
+      if (conf_map.count(key) == 0)
+      {
+        std::string err_msg("Unknown field in configuration file: ");
+        err_msg += key;
+        logger->log(MY_ERROR_LEVEL, err_msg.c_str());
+        return true;
+      }
       conf_map[key] = value;
     }
-    return false;
+    return check_if_all_required_keys_are_present(conf_map);
   }
 protected:
+  ILogger *logger;
+
+  void fill_conf_map_with_required_keys(ConfMap &conf_map)
+  {
+    conf_map = {{"iss",""}, {"scope",""}, {"aud",""}, {"private_key",""}};
+  }
+
+  bool check_if_all_required_keys_are_present(ConfMap &conf_map)
+  {
+    for (const auto& elem : conf_map)
+      if (elem.second.empty())
+      {
+        std::string err_msg("Configuration file do not contain field: ");
+        err_msg += elem.first;
+        logger->log(MY_ERROR_LEVEL, err_msg.c_str());
+        return true;
+      }
+    return false;
+  }
+
   bool get_next_text_between_quotes(std::string &text, std::string &text_between_quotes,
                                     size_t start_pos, size_t &quotes_end_pos)
   {
