@@ -1,3 +1,6 @@
+#ifndef SMART_LOOP_GKMS_CONF_PARSER_H
+#define SMART_LOOP_GKMS_CONF_PARSER_H
+
 #include "my_config.h"
 //#include <boost/tokenizer.hpp>
 //#include <boost/algorithm/string/erase.hpp>
@@ -42,12 +45,13 @@ public:
     : logger(logger)
   {}
 
-  bool parse_file(std::string &conf_file_path, ConfMap &conf_map)
+  //bool parse_file(std::string &conf_file_path, ConfMap &conf_map)
+  bool parse_file(const char *conf_file_path, ConfMap &conf_map)
   {
     fill_conf_map_with_required_keys(conf_map);
 
     std::ifstream fs;
-    fs.open(conf_file_path.c_str(), std::fstream::in);
+    fs.open(conf_file_path, std::fstream::in);
     std::string line, key, value;
     while(std::getline(fs, line))
     {
@@ -108,3 +112,5 @@ protected:
 };
 
 } //namespace keyring
+
+#endif // SMART_LOOP_GKMS_CONF_PARSER_H
