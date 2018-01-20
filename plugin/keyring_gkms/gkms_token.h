@@ -1,3 +1,6 @@
+#ifndef SMART_LOOP_GKMS_TOKEN_H
+#define SMART_LOOP_GKMS_TOKEN_H
+
 #include <my_global.h>
 #include "gkms_curl.h"
 #include "gkms_conf_parser.h"
@@ -12,12 +15,16 @@ public:
     : conf_map(conf_map)
   {}
 
-  bool get_token(Secure_string &token);
+  bool get_token(std::string &token); //TODO: Change to Secure_string
 
-private:
-  bool generate_request_body();
+protected:
+  //uint get_current_unix_timestamp();
+  //uint get_unix_timestamp_in_future(uint timestamp, uint seconds_to_add);
+
+  std::string get_request_body();
 
   std::string request_header = R"({"alg":"RS256","typ":"JWT"})";
+  //std::string request_body;
   ConfMap conf_map;
 
   //struct Request_body
@@ -31,3 +38,6 @@ private:
 };
 
 } //namespace keyring
+
+#endif //SMART_LOOP_GKMS_TOKEN_H
+

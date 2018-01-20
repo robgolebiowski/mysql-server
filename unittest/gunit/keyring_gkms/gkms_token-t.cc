@@ -16,19 +16,33 @@
 #include <my_global.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "gkms_conf_parser.h"
+#include <gkms_token.h>
+//#include "gkms_conf_parser.h"
 #include "mock_logger.h"
 //#include <mysql/plugin_keyring.h>
 //#include <sql_plugin_ref.h>
 //#include "keyring_key.h"
 //#include "buffered_file_io.h"
 
-namespace keyring_gkms_conf_parser_unittest
+namespace keyring_gkms_token_unittest
 {
   using namespace keyring;
   using ::testing::StrEq;
 
-  class Gkms_conf_parser_test : public ::testing::Test
+  class Gkms_token_testable : public Gkms_token
+  {
+  public:
+    Gkms_token_testable(ConfMap &conf_map)
+    : Gkms_token(conf_map)
+    {}
+
+    std::string get_request_body()
+    {
+      return Gkms_token::get_request_body();
+    }
+  };
+
+  class Gkms_token_test : public ::testing::Test
   {
   protected:
     virtual void SetUp()
@@ -48,35 +62,57 @@ namespace keyring_gkms_conf_parser_unittest
   protected:
     //st_plugin_int fake_mysql_plugin;
     ILogger *logger;
+
+    void generate_correct_conf_file()
+    {
+      std::string file_name("./conf_file");
+      std::remove(file_name.c_str());
+      std::ofstream conf_file(file_name.c_str());
+      conf_file << R"("iss":"robert@keyring-122511.iam.gserviceaccount.com")" << std::endl;
+      conf_file << R"("scope":"https://www.googleapis.com/auth/cloudkms")" << std::endl;
+      conf_file << R"("aud":"https://www.googleapis.com/oauth2/v4/token")" << std::endl;
+      conf_file << R"("private_key":"/home/rob/very_secret/key")" << std::endl;
+      conf_file.close();
+    }
   };
 
-  TEST_F(Gkms_conf_parser_test, Parse_conf_file_with_incorrect_keys)
+  TEST_F(Gkms_token_test, Generate_request_body)
   {
-    std::string file_name("./conf_file");
-    std::remove(file_name.c_str());
-    std::ofstream conf_file(file_name.c_str());
-    conf_file << R"("key1" : "value1")" << std::endl;
-    conf_file << R"("key___22__" : "value___22__2")" << std::endl;
-    conf_file << R"("123key1_continues" : "value_also continues")" << std::endl;
-    conf_file.close();
-    
-    EXPECT_CALL(*((Mock_logger *)logger),
-                log(MY_ERROR_LEVEL, StrEq("Unknown field in configuration file: key1")));
     Gkms_conf_parser gkms_conf_parser(logger);
     ConfMap conf_map;
-    EXPECT_EQ(gkms_conf_parser.parse_file(file_name.c_str(), conf_map), true);
+    EXPECT_EQ(gkms_conf_parser.parse_file("./conf_file", conf_map), false);
+    Gkms_token_testable gkms_token_testable(conf_map);
+    std::string request_body = gkms_token_testable.get_request_body();
+    EXPECT_EQ(request_body.empty(), false);
+    EXPECT_STREQ(request_body.c_str(), R"({"iss":"robert@keyring-122511.iam.gserviceaccount.com",)"
+                                       R"("scope":"https://www.googleapis.com/auth/cloudkms")"
+        );
 
-    EXPECT_TRUE(conf_map["iss"].empty());
-    EXPECT_TRUE(conf_map["scope"].empty());
-    EXPECT_TRUE(conf_map["aud"].empty());
-    EXPECT_TRUE(conf_map["private_key"].empty());
-    EXPECT_TRUE(conf_map.count("key1") == 0);
-    EXPECT_TRUE(conf_map.count("key___22__") == 0);
-    EXPECT_TRUE(conf_map.count("123key1_continues") == 0);
+    //std::string file_name("./conf_file");
+    //std::remove(file_name.c_str());
+    //std::ofstream conf_file(file_name.c_str());
+    //conf_file << R"("key1" : "value1")" << std::endl;
+    //conf_file << R"("key___22__" : "value___22__2")" << std::endl;
+    //conf_file << R"("123key1_continues" : "value_also continues")" << std::endl;
+    //conf_file.close();
+    
+    //EXPECT_CALL(*((Mock_logger *)logger),
+                //log(MY_ERROR_LEVEL, StrEq("Unknown field in configuration file: key1")));
+    //Gkms_conf_parser gkms_conf_parser(logger);
+    //ConfMap conf_map;
+    //EXPECT_EQ(gkms_conf_parser.parse_file(file_name, conf_map), true);
+
+    //EXPECT_TRUE(conf_map["iss"].empty());
+    //EXPECT_TRUE(conf_map["scope"].empty());
+    //EXPECT_TRUE(conf_map["aud"].empty());
+    //EXPECT_TRUE(conf_map["private_key"].empty());
+    //EXPECT_TRUE(conf_map.count("key1") == 0);
+    //EXPECT_TRUE(conf_map.count("key___22__") == 0);
+    //EXPECT_TRUE(conf_map.count("123key1_continues") == 0);
     //EXPECT_STREQ("value___22__2", conf_map["key___22__"].c_str());
     //EXPECT_STREQ("value_also continues", conf_map["123key1_continues"].c_str());
   }
-
+/*
   TEST_F(Gkms_conf_parser_test, Parse_empty_conf_file)
   {
     std::string file_name("./empty_conf_file");
@@ -88,7 +124,7 @@ namespace keyring_gkms_conf_parser_unittest
     ConfMap conf_map;
     EXPECT_CALL(*((Mock_logger *)logger),
                 log(MY_ERROR_LEVEL, StrEq("Configuration file does not contain field: aud")));
-    EXPECT_EQ(gkms_conf_parser.parse_file(file_name.c_str(), conf_map), true);
+    EXPECT_EQ(gkms_conf_parser.parse_file(file_name, conf_map), true);
     EXPECT_TRUE(conf_map["iss"].empty());
     EXPECT_TRUE(conf_map["scope"].empty());
     EXPECT_TRUE(conf_map["aud"].empty());
@@ -109,7 +145,7 @@ namespace keyring_gkms_conf_parser_unittest
     ConfMap conf_map;
     EXPECT_CALL(*((Mock_logger *)logger),
                 log(MY_ERROR_LEVEL, StrEq("Configuration file does not contain field: private_key")));
-    EXPECT_EQ(gkms_conf_parser.parse_file(file_name.c_str(), conf_map), true);
+    EXPECT_EQ(gkms_conf_parser.parse_file(file_name, conf_map), true);
 
     EXPECT_TRUE(conf_map.size() == 4);
     EXPECT_STREQ("robert@keyring-122511.iam.gserviceaccount.com", conf_map["iss"].c_str());
@@ -132,11 +168,11 @@ namespace keyring_gkms_conf_parser_unittest
     
     Gkms_conf_parser gkms_conf_parser(logger);
     ConfMap conf_map;
-    EXPECT_EQ(gkms_conf_parser.parse_file(file_name.c_str(), conf_map), false);
+    EXPECT_EQ(gkms_conf_parser.parse_file(file_name, conf_map), false);
 
     EXPECT_STREQ("robert@keyring-122511.iam.gserviceaccount.com", conf_map["iss"].c_str());
     EXPECT_STREQ("https://www.googleapis.com/auth/cloudkms", conf_map["scope"].c_str());
     EXPECT_STREQ("https://www.googleapis.com/oauth2/v4/token", conf_map["aud"].c_str());
     EXPECT_STREQ("/home/rob/very_secret/key", conf_map["private_key"].c_str());
-  }
+  }*/
 }
