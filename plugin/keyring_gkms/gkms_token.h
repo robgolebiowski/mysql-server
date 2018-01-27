@@ -21,7 +21,9 @@ protected:
   //uint get_current_unix_timestamp();
   //uint get_unix_timestamp_in_future(uint timestamp, uint seconds_to_add);
 
-  std::string get_request_body();
+  virtual std::string get_request_body();
+  Secure_string get_encoded_header();
+  Secure_string get_encoded_body();
 
   std::string request_header = R"({"alg":"RS256","typ":"JWT"})";
   //std::string request_body;

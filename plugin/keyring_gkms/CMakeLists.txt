@@ -1,10 +1,11 @@
 INCLUDE(CheckFunctionExists)
 #INCLUDE(curl)
 
+set (CMAKE_CXX_STANDARD 11)
 SET(CMAKE_EXTRA_INCLUDE_FILES string.h)
 CHECK_FUNCTION_EXISTS(memset_s HAVE_MEMSET_S)
 SET(CMAKE_EXTRA_INCLUDE_FILES)
-set (CMAKE_CXX_STANDARD 11)
+message ("${HAVE_MEMSET_S}")
 
 MACRO (CHECK_IF_LIB_FOUND lib_name project_name)
   SET (lib_found_variable_name "${lib_name}_FOUND")
@@ -42,6 +43,7 @@ MYSQL_ADD_PLUGIN(keyring_gkms
                  ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keyring_impl.cc
                  gkms_conf_parser.cc
                  gkms_token.cc
+                 vault_base64.cc
                  #vault_io.cc
                  #vault_key.cc
                  #vault_base64.cc
