@@ -8,6 +8,7 @@
 #include "boost/move/unique_ptr.hpp"
 #include <stdio.h>
 #include <stdlib.h>
+#include <algorithm>
 
 namespace keyring
 {
@@ -29,7 +30,16 @@ namespace keyring
       memory_needed = new_end - base64_encoded_text.get();
     }
     // base64 encode below returns data with NULL terminating string - which we do not care about
-    encoded->assign(base64_encoded_text.get(), memory_needed - 1); 
+    encoded->assign(base64_encoded_text.get(), memory_needed - 1);
+
+    //TODO: Move it out of here - this is for Base64URL
+    std::size_t found = encoded->find_last_not_of("=");
+    if (found != std::string::npos)
+      encoded->erase(found+1);
+    std::replace(encoded->begin(), encoded->end(), '+', '-');
+    std::replace(encoded->begin(), encoded->end(), '/', '_');
+    //TODO: end
+
     //memset_s(base64_encoded_text.get(), 0, memory_needed, memory_needed);
     memset(base64_encoded_text.get(), '0', memory_needed);
 

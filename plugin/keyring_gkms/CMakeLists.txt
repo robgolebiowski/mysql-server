@@ -34,6 +34,8 @@ INCLUDE_DIRECTORIES(SYSTEM ${BOOST_INCLUDE_DIR})
 
 INCLUDE_DIRECTORIES(
   ${CMAKE_SOURCE_DIR}/plugin/keyring/common
+  ${CMAKE_SOURCE_DIR}/plugin/keyring
+  ${CMAKE_SOURCE_DIR}/include 
   #${CURL_INCLUDE_DIRS}
 )
 
@@ -41,6 +43,7 @@ MYSQL_ADD_PLUGIN(keyring_gkms
                  ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keyring_key.cc
                  ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keys_container.cc
                  ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keyring_impl.cc
+                 ${CMAKE_SOURCE_DIR}/plugin/keyring/file_io.cc
                  gkms_conf_parser.cc
                  gkms_token.cc
                  vault_base64.cc
@@ -57,6 +60,10 @@ MYSQL_ADD_PLUGIN(keyring_gkms
                  #LINK_LIBRARIES  ${CURL_LIBRARIES}
                  MODULE_ONLY
                  MODULE_OUTPUT_NAME "keyring_gkms")
+
+IF(SSL_DEFINES)
+  ADD_DEFINITIONS(${SSL_DEFINES})
+ENDIF()
 
 #IF(WITH_KEYRING_VAULT_TEST)
   #ADD_SUBDIRECTORY(keyring_vault-test)
