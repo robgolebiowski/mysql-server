@@ -11,11 +11,12 @@ namespace keyring
 class Gkms_token
 {
 public:
-  Gkms_token(ConfMap &conf_map)
-    : conf_map(conf_map)
+  Gkms_token(ILogger *logger, ConfMap &conf_map)
+    : logger(logger)
+    , conf_map(conf_map)
   {}
 
-  bool get_token(std::string &token); //TODO: Change to Secure_string
+  Secure_string get_token(std::string &token); //TODO: Change to Secure_string
 
 protected:
   //uint get_current_unix_timestamp();
@@ -24,9 +25,11 @@ protected:
   virtual std::string get_request_body();
   Secure_string get_encoded_header();
   Secure_string get_encoded_body();
+  Secure_string get_sha256_request_dgst();
 
   std::string request_header = R"({"alg":"RS256","typ":"JWT"})";
   //std::string request_body;
+  ILogger *logger;
   ConfMap conf_map;
 
   //struct Request_body
