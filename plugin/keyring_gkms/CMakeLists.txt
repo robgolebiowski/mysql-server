@@ -1,5 +1,5 @@
 INCLUDE(CheckFunctionExists)
-#INCLUDE(curl)
+INCLUDE(curl)
 
 set (CMAKE_CXX_STANDARD 11)
 SET(CMAKE_EXTRA_INCLUDE_FILES string.h)
@@ -28,9 +28,10 @@ ENDMACRO()
 
 #FIND_CURL()
 #CHECK_IF_LIB_FOUND(CURL "keyring_vault")
+INCLUDE(curl)
 
 INCLUDE_DIRECTORIES(${BOOST_PATCHES_DIR})
-INCLUDE_DIRECTORIES(SYSTEM ${BOOST_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(SYSTEM ${BOOST_INCLUDE_DIR} ${CURL_INCLUDE_DIRS})
 
 INCLUDE_DIRECTORIES(
   ${CMAKE_SOURCE_DIR}/plugin/keyring/common
@@ -57,7 +58,7 @@ MYSQL_ADD_PLUGIN(keyring_gkms
                  #vault_credentials_parser.cc
                  #vault_credentials.cc
                  #vault_keyring.cc
-                 #LINK_LIBRARIES  ${CURL_LIBRARIES}
+                 LINK_LIBRARIES  ${CURL_LIBRARIES}
                  MODULE_ONLY
                  MODULE_OUTPUT_NAME "keyring_gkms")
 

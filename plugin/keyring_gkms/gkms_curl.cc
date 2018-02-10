@@ -1,5 +1,7 @@
 #include "gkms_curl.h"
 
+static const size_t max_response_size = 32000000;
+
 namespace keyring
 {
   static size_t write_response_memory(void *contents, size_t size, size_t nmemb, void *userp)
@@ -27,36 +29,35 @@ namespace keyring
     CURLcode curl_res = CURLE_OK;
     curl_errbuf[0] = '\0';
 
-    //TODO: is vault ca needed here ?
+    //TODO: is gcloud ca needed here ?
 
     if ((curl = curl_easy_init()) == NULL ||
-        (list = curl_slist_append(list, token_header.c_str())) == NULL ||
-        (list = curl_slist_append(list, "Content-Type: application/json")) == NULL ||
+        //(list = curl_slist_append(list, token_header.c_str())) == NULL ||
+        //(list = curl_slist_append(list, "Content-Type: application/json")) == NULL ||
         (curl_res = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf)) != CURLE_OK ||
         (curl_res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_response_memory)) != CURLE_OK ||
         (curl_res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(&read_data_ss))) != CURLE_OK ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list)) != CURLE_OK ||
+        //(curl_res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list)) != CURLE_OK ||
         (curl_res = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1)) != CURLE_OK ||
         (curl_res = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L)) != CURLE_OK ||
         //(!vault_ca.empty() &&
          //(curl_res = curl_easy_setopt(curl, CURLOPT_CAINFO, vault_ca.c_str())) != CURLE_OK
         //) ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL)) != CURLE_OK ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout)) != CURLE_OK ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback)) ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L))
+        (curl_res = curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL)) != CURLE_OK //||
+        //(curl_res = curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout)) != CURLE_OK ||
+        //(curl_res = curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback)) ||
+        //(curl_res = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L))
        )
     {
-      logger->log(MY_ERROR_LEVEL, get_error_from_curl(curl_res).c_str());
+      //TODO: This needs to be restored
+      //logger->log(MY_ERROR_LEVEL, get_error_from_curl(curl_res).c_str());
       return true;
     }
     return false;
   }
 
-  bool Gkms_curl::exec()
-  {
-    return (curl_res = curl_easy_perform(curl)) != CURLE_OK;
-  }
+
+
 
   std::string Gkms_curl::get_error()
   {

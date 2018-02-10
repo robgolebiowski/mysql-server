@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
+INCLUDE(curl)
 
 IF(NOT GMOCK_FOUND)
   RETURN()
@@ -60,6 +60,7 @@ IF (MERGE_UNITTESTS)
        #${CMAKE_SOURCE_DIR}/plugin/keyring/common/keys_container.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_conf_parser.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_token.cc
+       ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_curl.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/vault_base64.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/buffered_file_io.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/file_io.cc
@@ -74,7 +75,7 @@ IF (MERGE_UNITTESTS)
   ADD_EXECUTABLE(merge_keyring_gkms_tests-t ${SRC_FILES})
 
   TARGET_LINK_LIBRARIES(merge_keyring_gkms_tests-t gunit_large strings dbug regex mysys sql)
-  TARGET_LINK_LIBRARIES(merge_keyring_gkms_tests-t sql binlog rpl master slave sql)
+  TARGET_LINK_LIBRARIES(merge_keyring_gkms_tests-t sql binlog rpl master slave sql ${CURL_LIBRARY} ${SSL_LIBRARIES})
 
   IF(WITH_PERFSCHEMA_STORAGE_ENGINE)
     TARGET_LINK_LIBRARIES(merge_keyring_gkms_tests-t perfschema)
@@ -102,7 +103,7 @@ ENDIF(MERGE_UNITTESTS)
     ADD_EXECUTABLE(${test}-t ${SRC_FILES})
 
     TARGET_LINK_LIBRARIES(${test}-t gunit_large strings dbug regex mysys sql)
-    TARGET_LINK_LIBRARIES(${test}-t sql binlog rpl master slave sql)
+    TARGET_LINK_LIBRARIES(${test}-t sql binlog rpl master slave sql ${CURL_LIBRARY} ${SSL_LIBRARIES})
 
     IF(WITH_PERFSCHEMA_STORAGE_ENGINE)
       TARGET_LINK_LIBRARIES(${test}-t perfschema)

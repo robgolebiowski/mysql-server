@@ -20,9 +20,28 @@ namespace keyring
 
 Secure_string Gkms_token::get_token()
 {
-
-
-  return "";
+  Gkms_curl curl(logger);
+  if (curl.init())
+    return "";
+  curl.set_url(conf_map["aud"].c_str());
+  Secure_string encoded_header = get_encoded_header(); 
+  Secure_string encoded_body = get_encoded_body();
+  if (encoded_header.empty() || encoded_body.empty())
+    return "";
+  Secure_string encoded_request = encoded_header + '.' + encoded_body;
+  Secure_string encoded_request_dgst = get_sha256_request_dgst(encoded_request);
+  if (encoded_request_dgst.empty())
+    return "";
+  Secure_ostringstream oss;
+  oss << "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=";
+  oss << encoded_request << '.' << encoded_request_dgst;
+  curl.set_post_data(oss.str());
+  if (curl.execute())
+  {
+    //TODO: Add logger 
+    return "";
+  }
+  return curl.get_response();
 }
 
 std::string Gkms_token::get_request_body()
@@ -32,7 +51,6 @@ std::string Gkms_token::get_request_body()
   request_body_ss << R"("iss":")" << conf_map["iss"] << R"(",)";
   request_body_ss << R"("scope":")" << conf_map["scope"] << R"(",)";
   request_body_ss << R"("aud":")" << conf_map["aud"] << R"(",)";
-  //request_body_ss << R"("private_key":")" << conf_map["private_key"] << R"(",)"; //TODO:Dlaczego tu jest private_key?
   auto unix_timestamp = std::chrono::seconds(std::time(NULL));
   request_body_ss << R"("iat":)" << unix_timestamp.count() << R"(,)";
   request_body_ss << R"("exp":)" << unix_timestamp.count() + 3600; //TODO: exp time is one hour in the future - should it be configurable ?
@@ -79,12 +97,11 @@ Secure_string Gkms_token::get_encoded_body()
 //}
 
 
-Secure_string Gkms_token::get_sha256_request_dgst()
+Secure_string Gkms_token::get_sha256_request_dgst(const Secure_string &encoded_request)
 {
   EVP_MD_CTX *mdctx = NULL;
    
   uchar *sig = NULL;
-  Secure_string encoded_request = get_encoded_header() + '.' + get_encoded_body();
 
   _IO_FILE *pem_key_file = fopen(conf_map["private_key"].c_str(),"r");
 

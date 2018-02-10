@@ -44,33 +44,43 @@ namespace keyring {
 
 class Gkms_curl
 {
+public:
   Gkms_curl(ILogger *logger)
     : curl(NULL) 
     , logger(logger)
-    , list(NULL)
+    //, list(NULL)
   {}
   ~Gkms_curl()
   {
     if (curl != NULL)
       curl_easy_cleanup(curl);
-    if (list != NULL)
-      curl_slist_free_all(list);
+    //if (list != NULL)
+      //curl_slist_free_all(list);
   }
 
   bool init();
-  bool set_url(std::string &url)
+  bool set_url(const Secure_string &url)
   {
     return (curl_res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str())) != CURLE_OK;
   }
-  bool set_post_request(std::string &post_request)
+  bool set_post_data(const Secure_string &post_data)
   {
-    return (curl_res = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_request.c_str())) != CURLE_OK;
+    return (curl_res = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str())) != CURLE_OK;
   }
-
+  Secure_string get_response()
+  {
+    return read_data_ss.str();
+  }
+  bool execute()
+  {
+    return (curl_res = curl_easy_perform(curl)) != CURLE_OK;
+  }
 private:
+  //std::string get_error();
+
   CURL *curl;
   ILogger *logger;
-  struct curl_slist *list;
+  //struct curl_slist *list;
   char curl_errbuf[CURL_ERROR_SIZE]; // error from CURL
   Secure_ostringstream read_data_ss;
   CURLcode curl_res; // status of the last curl call
