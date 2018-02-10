@@ -16,7 +16,7 @@ public:
     , conf_map(conf_map)
   {}
 
-  Secure_string get_token(std::string &token); //TODO: Change to Secure_string
+  Secure_string get_token(); //TODO: Change to Secure_string
 
 protected:
   //uint get_current_unix_timestamp();
@@ -25,7 +25,7 @@ protected:
   virtual std::string get_request_body();
   Secure_string get_encoded_header();
   Secure_string get_encoded_body();
-  Secure_string get_sha256_request_dgst();
+  Secure_string get_sha256_request_dgst(const Secure_string &encoded_request);
 
   std::string request_header = R"({"alg":"RS256","typ":"JWT"})";
   //std::string request_body;

@@ -201,6 +201,7 @@ INCLUDE(character_sets)
 INCLUDE(cpu_info)
 INCLUDE(zlib)
 INCLUDE(lz4)
+INCLUDE(curl)
 INCLUDE(libevent)
 INCLUDE(ssl)
 INCLUDE(readline)
@@ -494,6 +495,9 @@ MYSQL_CHECK_LZ4()
 IF(NOT WITHOUT_SERVER)
   MYSQL_CHECK_PROTOBUF()
 ENDIF()
+
+# Try and set CURL_LIBRARY
+MYSQL_CHECK_CURL()
 
 # Check for SYS_thread_selfid system call
 CHECK_C_SOURCE_COMPILES("
