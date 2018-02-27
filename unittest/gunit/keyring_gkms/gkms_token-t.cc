@@ -16,7 +16,7 @@
 #include <my_global.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <gkms_token.h>
+#include <gkms_token_receiver.h>
 //#include "gkms_conf_parser.h"
 #include "mock_logger.h"
 #include <chrono>
@@ -41,45 +41,55 @@ namespace keyring_gkms_token_unittest
   using namespace keyring;
   using ::testing::StrEq;
 
-  class Gkms_token_testable : public Gkms_token
+  class Gkms_token_receiver_testable : public Gkms_token_receiver
   {
   public:
-    Gkms_token_testable(ILogger *logger, ConfMap &conf_map, const std::string &fake_request_body)
-    : Gkms_token(logger, conf_map)
+    Gkms_token_receiver_testable(ILogger *logger, ConfMap &conf_map, const std::string &fake_request_body)
+    : Gkms_token_receiver(logger, conf_map)
     , fake_request_body(fake_request_body)
     {}
 
-    Gkms_token_testable(ILogger *logger, ConfMap &conf_map)
-    : Gkms_token_testable(logger, conf_map, "")
+    Gkms_token_receiver_testable(ILogger *logger, ConfMap &conf_map)
+    : Gkms_token_receiver_testable(logger, conf_map, "")
     {}
 
     Secure_string get_encoded_header()
     {
-      return Gkms_token::get_encoded_header();  
+      return Gkms_token_receiver::get_encoded_header();  
     }
 
     Secure_string get_encoded_body()
     {
-      return Gkms_token::get_encoded_body();
+      return Gkms_token_receiver::get_encoded_body();
     }
 
     // TODO: Change to Secure_string
     virtual std::string get_request_body()
     {
-      return fake_request_body.empty() ? Gkms_token::get_request_body()
+      return fake_request_body.empty() ? Gkms_token_receiver::get_request_body()
                                        : fake_request_body;
     }
 
     Secure_string get_sha256_request_dgst(const Secure_string &encoded_request)
     {
-      return Gkms_token::get_sha256_request_dgst(encoded_request); 
+      return Gkms_token_receiver::get_sha256_request_dgst(encoded_request); 
+    }
+
+    static Secure_string get_token_from_response(const Secure_string &response)
+    {
+      return Gkms_token_receiver::get_token_from_reponse(response);
+    }
+
+    static int get_expires_in_from_reponse(const Secure_string &response)
+    {
+      return Gkms_token_receiver::get_expires_in_from_reponse(response);
     }
 
   private:
     const std::string &fake_request_body;
   };
 
-  class Gkms_token_test : public ::testing::Test
+  class Gkms_token_receiver_test : public ::testing::Test
   {
   protected:
     virtual void SetUp()
@@ -110,17 +120,19 @@ namespace keyring_gkms_token_unittest
       conf_file << R"("scope":"https://www.googleapis.com/auth/cloudkms")" << std::endl;
       conf_file << R"("aud":"https://www.googleapis.com/oauth2/v4/token")" << std::endl;
       conf_file << R"("private_key":"/home/rob/google_key/private_key")" << std::endl;
+      conf_file << R"("bucket_name":keys-storage)" << std::endl;
+
       conf_file.close();
     }
   };
 
-  TEST_F(Gkms_token_test, Generate_request_body)
+  TEST_F(Gkms_token_receiver_test, Generate_request_body)
   {
     Gkms_conf_parser gkms_conf_parser(logger);
     ConfMap conf_map;
     EXPECT_EQ(gkms_conf_parser.parse_file("./conf_file", conf_map), false);
     ILogger *mock_logger = new Mock_logger;
-    Gkms_token_testable gkms_token_testable(mock_logger, conf_map);
+    Gkms_token_receiver_testable gkms_token_testable(mock_logger, conf_map);
     std::string request_body = gkms_token_testable.get_request_body();
     EXPECT_EQ(request_body.empty(), false);
     std::string expected_request_body(R"({"iss":"robert@keyring-122511.iam.gserviceaccount.com",)"
@@ -130,22 +142,23 @@ namespace keyring_gkms_token_unittest
                                       R"("iat":)");
 
     EXPECT_STREQ(request_body.substr(0, expected_request_body.length()).c_str(), expected_request_body.c_str());
-    auto unix_timestamp = std::chrono::seconds(std::time(NULL)).count();
-    uint iat_timestamp = std::stoul(request_body.substr(expected_request_body.length(), 10)); 
+    std::chrono::duration<int> seconds_timestamp = std::chrono::seconds(std::time(NULL));
+    int unix_timestamp = seconds_timestamp.count();
+    int iat_timestamp = std::stoul(request_body.substr(expected_request_body.length(), 10)); 
     ASSERT_TRUE(iat_timestamp <= unix_timestamp && unix_timestamp <= iat_timestamp + 200); 
 
-    uint exp_timestamp = std::stoul(request_body.substr(expected_request_body.length() + 10 + strnlen(R"(,"iat":)", 10))); 
+    int exp_timestamp = std::stoul(request_body.substr(expected_request_body.length() + 10 + strnlen(R"(,"iat":)", 10))); 
 
     ASSERT_TRUE(exp_timestamp <= unix_timestamp + 3600 && unix_timestamp + 3600 <= exp_timestamp + 200); 
   }
 
-  TEST_F(Gkms_token_test, Get_encoded_header)
+  TEST_F(Gkms_token_receiver_test, Get_encoded_header)
   {
     Gkms_conf_parser gkms_conf_parser(logger);
     ConfMap conf_map;
     EXPECT_EQ(gkms_conf_parser.parse_file("./conf_file", conf_map), false);
     ILogger *mock_logger = new Mock_logger;
-    Gkms_token_testable gkms_token_testable(mock_logger, conf_map);
+    Gkms_token_receiver_testable gkms_token_testable(mock_logger, conf_map);
     std::string request_body = gkms_token_testable.get_request_body();
     EXPECT_STREQ(gkms_token_testable.get_encoded_header().c_str(), "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
 
@@ -168,7 +181,7 @@ namespace keyring_gkms_token_unittest
     //ASSERT_TRUE(exp_timestamp <= unix_timestamp + 3600 && unix_timestamp + 3600 <= exp_timestamp + 200); 
   }
 
-  TEST_F(Gkms_token_test, Get_encoded_body)
+  TEST_F(Gkms_token_receiver_test, Get_encoded_body)
   {
     Gkms_conf_parser gkms_conf_parser(logger);
     ConfMap conf_map;
@@ -183,11 +196,11 @@ namespace keyring_gkms_token_unittest
     fake_request_body_ss << R"(})" << std::endl;
     std::string fake_request_body = fake_request_body_ss.str();
     ILogger *mock_logger = new Mock_logger;
-    Gkms_token_testable gkms_token_testable(mock_logger, conf_map, fake_request_body);
+    Gkms_token_receiver_testable gkms_token_testable(mock_logger, conf_map, fake_request_body);
     EXPECT_STREQ(gkms_token_testable.get_encoded_body().c_str(), "ewoiaXNzIjoicm9iZXJ0QGtleXJpbmctMTgyOTE0LmlhbS5nc2VydmljZWFjY291bnQuY29tIiwKInNjb3BlIjoiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vYXV0aC9jbG91ZGttcyIsCiJhdWQiOiJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9vYXV0aDIvdjQvdG9rZW4iLAoiZXhwIjoxNTE1ODQwNTc0LAoiaWF0IjoxNTE1ODM2OTYzCn0K");
   }
 
-  TEST_F(Gkms_token_test, Get_body_digest)
+  TEST_F(Gkms_token_receiver_test, Get_body_digest)
   {
     Gkms_conf_parser gkms_conf_parser(logger);
     generate_correct_conf_file();
@@ -203,25 +216,45 @@ namespace keyring_gkms_token_unittest
     fake_request_body_ss << R"(})" << std::endl;
     std::string fake_request_body = fake_request_body_ss.str();
     ILogger *mock_logger = new Mock_logger;
-    Gkms_token_testable gkms_token_testable(mock_logger, conf_map, fake_request_body);
+    Gkms_token_receiver_testable gkms_token_testable(mock_logger, conf_map, fake_request_body);
     Secure_string dgst = gkms_token_testable.get_sha256_request_dgst(gkms_token_testable.get_encoded_header() + '.' +
                                                                      gkms_token_testable.get_encoded_body());
     //EXPECT_STREQ(dgst.c_str(), "4e242979aa7a911fe92f6804a0db1cd1d212d05699dcf37fc6334749d4854f1d");
     EXPECT_STREQ(dgst.c_str(), "blVX2yv7HMw_oKfi2HZh7diSj7QK5OyY826gQ2mSDcrewSKIX6WiVmUCNX38CjdhxAqDUp7WNKnqGN_Qf6wiCtC_DM_FT-Pde157yjMEMrJQUodU5O7dZYA7pVm8BOXBYRuaT31Q1IWxleGAUVxKbZmLXfA6qDmyEJHLmxOdJb29_ilHaIEO5CMbIyAfVkwKk1M_Y_Q3JCbebM30V3qxsibXVhs9plz2g9lItu85M-LViQj8wAaqlda3h7QDEFIKA-WrTQNCLrgcycquXL8fmuA_epL2INqpyvEBTxmK8OqPypx5WeVNuSWy9gYrrK-_QxfhHAafXpTla4waF7_mqA");
   }
 
-  TEST_F(Gkms_token_test, Get_token)
+  TEST_F(Gkms_token_receiver_test, Get_token)
   {
     Gkms_conf_parser gkms_conf_parser(logger);
     generate_correct_conf_file();
     ConfMap conf_map;
     EXPECT_EQ(gkms_conf_parser.parse_file("./conf_file", conf_map), false);
     ILogger *mock_logger = new Mock_logger;
-    Gkms_token gkms_token(mock_logger, conf_map);
-    Secure_string token = gkms_token.get_token();
+    Gkms_token_receiver gkms_token(mock_logger, conf_map);
+    Secure_string token = gkms_token.get_token().token;
     //EXPECT_STREQ(dgst.c_str(), "4e242979aa7a911fe92f6804a0db1cd1d212d05699dcf37fc6334749d4854f1d");
     EXPECT_STREQ(token.c_str(), "blVX2yv7HMw_oKfi2HZh7diSj7QK5OyY826gQ2mSDcrewSKIX6WiVmUCNX38CjdhxAqDUp7WNKnqGN_Qf6wiCtC_DM_FT-Pde157yjMEMrJQUodU5O7dZYA7pVm8BOXBYRuaT31Q1IWxleGAUVxKbZmLXfA6qDmyEJHLmxOdJb29_ilHaIEO5CMbIyAfVkwKk1M_Y_Q3JCbebM30V3qxsibXVhs9plz2g9lItu85M-LViQj8wAaqlda3h7QDEFIKA-WrTQNCLrgcycquXL8fmuA_epL2INqpyvEBTxmK8OqPypx5WeVNuSWy9gYrrK-_QxfhHAafXpTla4waF7_mqA");
   }
+
+  TEST_F(Gkms_token_receiver_test, Get_token_from_response)
+  {
+    Secure_string token = Gkms_token_receiver_testable::get_token_from_response(
+    R"("access_token": "ya29.c.ElphBfLPZqr8ForR2r53IaIV6P9WYMKSi-8SE3Oyfs159fmAYwsEou2B0q8iUbb6vT_m-QEExRWTpoDAClmDY_Y0cciHeSmFQmBJcQ6Tl8Tvd0K1Skof8kkOKkI",)"
+    R"("token_type": "Bearer",)"
+    R"("expires_in": 3600)");
+
+    EXPECT_STREQ(token.c_str(), "ya29.c.ElphBfLPZqr8ForR2r53IaIV6P9WYMKSi-8SE3Oyfs159fmAYwsEou2B0q8iUbb6vT_m-QEExRWTpoDAClmDY_Y0cciHeSmFQmBJcQ6Tl8Tvd0K1Skof8kkOKkI");
+  }
+
+  TEST_F(Gkms_token_receiver_test, Get_expires_in_from_response)
+  {
+    int expires_in = Gkms_token_receiver_testable::get_expires_in_from_reponse(
+    R"("{access_token": "ya29.c.ElphBfLPZqr8ForR2r53IaIV6P9WYMKSi-8SE3Oyfs159fmAYwsEou2B0q8iUbb6vT_m-QEExRWTpoDAClmDY_Y0cciHeSmFQmBJcQ6Tl8Tvd0K1Skof8kkOKkI",)"
+    R"("token_type": "Bearer",)"
+    R"("expires_in": 3600})");
+
+    EXPECT_EQ(expires_in, 3600);
+ }
 
 /*
   TEST_F(Gkms_conf_parser_test, Parse_empty_conf_file)

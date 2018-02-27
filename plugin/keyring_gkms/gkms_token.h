@@ -1,48 +1,32 @@
 #ifndef SMART_LOOP_GKMS_TOKEN_H
 #define SMART_LOOP_GKMS_TOKEN_H
 
-#include <my_global.h>
-#include "gkms_curl.h"
-#include "gkms_conf_parser.h"
+#include "vault_secure_string.h"
 
-namespace keyring
-{
+namespace keyring {
 
-class Gkms_token
+struct Gkms_token
 {
-public:
-  Gkms_token(ILogger *logger, ConfMap &conf_map)
-    : logger(logger)
-    , conf_map(conf_map)
+  Gkms_token()
+    : token("")
+    , expires_at_unixtimestamp(0)
   {}
 
-  Secure_string get_token(); //TODO: Change to Secure_string
+  Gkms_token(Secure_string token,
+             int expires_at_unixtimestamp)
+    : token(token)
+    , expires_at_unixtimestamp(expires_at_unixtimestamp)
+  {}
 
-protected:
-  //uint get_current_unix_timestamp();
-  //uint get_unix_timestamp_in_future(uint timestamp, uint seconds_to_add);
+  bool is_empty()
+  {
+    return token.empty();
+  }
 
-  virtual std::string get_request_body();
-  Secure_string get_encoded_header();
-  Secure_string get_encoded_body();
-  Secure_string get_sha256_request_dgst(const Secure_string &encoded_request);
-
-  std::string request_header = R"({"alg":"RS256","typ":"JWT"})";
-  //std::string request_body;
-  ILogger *logger;
-  ConfMap conf_map;
-
-  //struct Request_body
-  //{
-    //std::string scope = R"("scope":"https://www.googleapis.com/auth/cloudkms")";
-    //std::string aud = R"("aud":"https://www.googleapis.com/oauth2/v4/token")";
-    //std::string iss;
-    //std::string exp;
-    //std::string iat;
-  //};
+  Secure_string token;
+  int expires_at_unixtimestamp;  
 };
 
-} //namespace keyring
+} // namespace keyring
 
-#endif //SMART_LOOP_GKMS_TOKEN_H
-
+#endif

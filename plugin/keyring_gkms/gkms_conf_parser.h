@@ -4,10 +4,9 @@
 #include "my_config.h"
 //#include <boost/tokenizer.hpp>
 //#include <boost/algorithm/string/erase.hpp>
-#include <string>
 #include <fstream>
-#include <map>
 #include "logger.h"
+#include "gkms_conf_map.h"
 
 namespace keyring {
 
@@ -35,7 +34,6 @@ namespace keyring {
 
 
 
-typedef std::map<std::string, std::string> ConfMap;
 
 class Gkms_conf_parser
 {
@@ -72,7 +70,7 @@ protected:
 
   void fill_conf_map_with_required_keys(ConfMap &conf_map)
   {
-    conf_map = {{"iss",""}, {"scope",""}, {"aud",""}, {"private_key",""}};
+    conf_map = {{"iss",""}, {"scope",""}, {"aud",""}, {"private_key",""}, {"bucket_name",""}};
   }
 
   bool check_if_all_required_keys_are_present(ConfMap &conf_map)

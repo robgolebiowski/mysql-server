@@ -48,14 +48,15 @@ public:
   Gkms_curl(ILogger *logger)
     : curl(NULL) 
     , logger(logger)
-    //, list(NULL)
+    , list(NULL)
+    , was_initialized(false)
   {}
   ~Gkms_curl()
   {
     if (curl != NULL)
       curl_easy_cleanup(curl);
-    //if (list != NULL)
-      //curl_slist_free_all(list);
+    if (list != NULL)
+      curl_slist_free_all(list);
   }
 
   bool init();
@@ -65,26 +66,61 @@ public:
   }
   bool set_post_data(const Secure_string &post_data)
   {
-    return (curl_res = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str())) != CURLE_OK;
+    return (curl_res = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str())) != CURLE_OK ||
+           (curl_res = curl_easy_setopt(curl, CURLOPT_POST, 1)) != CURLE_OK;
   }
+  //bool set_token(const Secure_string &token)
+  //{
+    //return (curl_res = curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, token.c_str())) != CURLE_OK; 
+  //}
+  bool set_content_type(const Secure_string &content_type)
+  {
+    return (list = curl_slist_append(list, content_type.c_str())) == NULL;
+  }
+  bool set_content_length(uint content_length)
+  {
+    Secure_ostringstream oss;
+    oss << "Content-Length: ";
+    oss << content_length;
+    Secure_string length(oss.str());
+    return (list = curl_slist_append(list, length.c_str())) == NULL;
+  }
+
+
+  bool set_token(const Secure_string &token)
+  {
+    Secure_ostringstream oss;
+    oss << "Authorization: Bearer ";
+    oss << token;
+    Secure_string auth_token;
+    return (list = curl_slist_append(list, auth_token.c_str())) == NULL;
+  }
+
   Secure_string get_response()
   {
     return read_data_ss.str();
   }
   bool execute()
   {
-    return (curl_res = curl_easy_perform(curl)) != CURLE_OK;
+    if (!was_initialized)
+      return true;
+    CURLcode curl_res = curl_easy_perform(curl);
+    curl_slist_free_all(list);
+    list = NULL;
+    return curl_res != CURLE_OK;
   }
+
 private:
   //std::string get_error();
 
   CURL *curl;
   ILogger *logger;
-  //struct curl_slist *list;
+  struct curl_slist *list;
   char curl_errbuf[CURL_ERROR_SIZE]; // error from CURL
   Secure_ostringstream read_data_ss;
   CURLcode curl_res; // status of the last curl call
   std::string get_error();
+  bool was_initialized;
 };
 
 

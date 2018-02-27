@@ -103,6 +103,7 @@ namespace keyring_gkms_conf_parser_unittest
     conf_file << R"("iss":"robert@keyring-122511.iam.gserviceaccount.com")" << std::endl;
     conf_file << R"("scope":"https://www.googleapis.com/auth/cloudkms")" << std::endl;
     conf_file << R"("aud":"https://www.googleapis.com/oauth2/v4/token")" << std::endl;
+    conf_file << R"("bucket_name":"keys-storage")" << std::endl;
     conf_file.close();
     
     Gkms_conf_parser gkms_conf_parser(logger);
@@ -111,10 +112,11 @@ namespace keyring_gkms_conf_parser_unittest
                 log(MY_ERROR_LEVEL, StrEq("Configuration file does not contain field: private_key")));
     EXPECT_EQ(gkms_conf_parser.parse_file(file_name.c_str(), conf_map), true);
 
-    EXPECT_TRUE(conf_map.size() == 4);
+    EXPECT_TRUE(conf_map.size() == 5);
     EXPECT_STREQ("robert@keyring-122511.iam.gserviceaccount.com", conf_map["iss"].c_str());
     EXPECT_STREQ("https://www.googleapis.com/auth/cloudkms", conf_map["scope"].c_str());
     EXPECT_STREQ("https://www.googleapis.com/oauth2/v4/token", conf_map["aud"].c_str());
+    EXPECT_STREQ("keys-storage", conf_map["bucket_name"].c_str());
     EXPECT_TRUE(conf_map["private_key"].empty());
   }
 
@@ -128,6 +130,7 @@ namespace keyring_gkms_conf_parser_unittest
     conf_file << R"("scope":"https://www.googleapis.com/auth/cloudkms")" << std::endl;
     conf_file << R"("aud":"https://www.googleapis.com/oauth2/v4/token")" << std::endl;
     conf_file << R"("private_key":"/home/rob/very_secret/key")" << std::endl;
+    conf_file << R"("bucket_name":"keys-storage")" << std::endl;
     conf_file.close();
     
     Gkms_conf_parser gkms_conf_parser(logger);
@@ -138,5 +141,6 @@ namespace keyring_gkms_conf_parser_unittest
     EXPECT_STREQ("https://www.googleapis.com/auth/cloudkms", conf_map["scope"].c_str());
     EXPECT_STREQ("https://www.googleapis.com/oauth2/v4/token", conf_map["aud"].c_str());
     EXPECT_STREQ("/home/rob/very_secret/key", conf_map["private_key"].c_str());
+    EXPECT_STREQ("keys-storage", conf_map["bucket_name"].c_str());
   }
 }

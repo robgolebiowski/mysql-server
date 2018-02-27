@@ -38,6 +38,7 @@ SET(TESTS
   #file_io
   gkms_conf_parser
   gkms_token
+  gkms_storage
 )
 
 IF (MERGE_UNITTESTS)
@@ -56,12 +57,14 @@ IF (MERGE_UNITTESTS)
 
   SET(SRC_FILES ${merge_keyring_gkms_tests})
   LIST(APPEND SRC_FILES
-       #${CMAKE_SOURCE_DIR}/plugin/keyring/common/keyring_key.cc
+       ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keyring_key.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/common/keys_container.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_conf_parser.cc
-       ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_token.cc
+       #${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_token.cc
+       ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_token_receiver.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_curl.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/vault_base64.cc
+       ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_storage.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/buffered_file_io.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/file_io.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/buffer.cc

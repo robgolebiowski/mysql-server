@@ -1,4 +1,4 @@
-#include "gkms_token.h"
+#include "gkms_token_receiver.h"
 #include "gkms_curl.h"
 #include <time.h>
 #include <chrono>
@@ -13,38 +13,86 @@
 #include <openssl/objects.h>
 //#include "file_io.h"
 #include <stdio.h>
+#include <string>
 
 
 namespace keyring
 {
-
-Secure_string Gkms_token::get_token()
+// on error returns empty Gkms_token
+Gkms_token Gkms_token_receiver::get_token()
 {
+  Gkms_token token; // empty token
   Gkms_curl curl(logger);
   if (curl.init())
-    return "";
+    return token;
   curl.set_url(conf_map["aud"].c_str());
   Secure_string encoded_header = get_encoded_header(); 
   Secure_string encoded_body = get_encoded_body();
   if (encoded_header.empty() || encoded_body.empty())
-    return "";
+    return token;
   Secure_string encoded_request = encoded_header + '.' + encoded_body;
   Secure_string encoded_request_dgst = get_sha256_request_dgst(encoded_request);
   if (encoded_request_dgst.empty())
-    return "";
+    return token;
   Secure_ostringstream oss;
   oss << "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=";
+  //oss << "/token?grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=";
   oss << encoded_request << '.' << encoded_request_dgst;
-  curl.set_post_data(oss.str());
+  Secure_string post_data = oss.str();
+  curl.set_post_data(post_data);
   if (curl.execute())
   {
     //TODO: Add logger 
-    return "";
+    return token;
   }
-  return curl.get_response();
+  Secure_string response = curl.get_response();
+  token.token = Gkms_token_receiver::get_token_from_reponse(response);
+  
+  return token;
 }
 
-std::string Gkms_token::get_request_body()
+// TODO: Change to response, not reponse
+Secure_string Gkms_token_receiver::get_token_from_reponse(const Secure_string &response)
+{
+  return get_value_from_reponse("access_token", response);
+}
+
+int Gkms_token_receiver::get_expires_in_from_reponse(const Secure_string &response)
+{
+  Secure_string expires_in = get_value_from_reponse("expires_in", response);
+  int expires_in_digit = 0;
+  try 
+  {
+    expires_in_digit = std::stoi(expires_in.c_str());
+  }
+  catch (const std::invalid_argument &e)
+  {
+    // TODO: Add logging
+    expires_in_digit = 0;
+  }
+  catch (const std::out_of_range &e)
+  {
+    // TODO: Add logging
+    expires_in_digit = 0;
+  }
+  return expires_in_digit;
+}
+
+Secure_string Gkms_token_receiver::get_value_from_reponse(const Secure_string &key, const Secure_string &response)
+{
+  Secure_string key_marker = R"(")" + key + R"(":)";
+  std::size_t token_start_pos = response.find(key_marker);
+  token_start_pos += key_marker.length();//strnlen(R"("access_token":)", 200);
+  token_start_pos = response.find_first_not_of(R"(:" )", token_start_pos);
+  if (token_start_pos == std::string::npos)
+    return "";
+  std::size_t token_end_pos = response.find_first_of("\"\n}", token_start_pos);
+  if (token_end_pos == std::string::npos)
+    return "";
+  return response.substr(token_start_pos, token_end_pos - token_start_pos);
+}
+
+std::string Gkms_token_receiver::get_request_body()
 {
   std::ostringstream request_body_ss;
   request_body_ss << "{";
@@ -54,12 +102,14 @@ std::string Gkms_token::get_request_body()
   auto unix_timestamp = std::chrono::seconds(std::time(NULL));
   request_body_ss << R"("iat":)" << unix_timestamp.count() << R"(,)";
   request_body_ss << R"("exp":)" << unix_timestamp.count() + 3600; //TODO: exp time is one hour in the future - should it be configurable ?
-  request_body_ss << "}";
+  //request_body_ss << R"("iat":)" << 1518360326 << R"(,)";
+  //request_body_ss << R"("exp":)" << 1518363990; //TODO: exp time is one hour in the future - should it be configurable ?
+  request_body_ss << "}" << std::endl;
 
   return request_body_ss.str();
 }
 
-Secure_string Gkms_token::get_encoded_header()
+Secure_string Gkms_token_receiver::get_encoded_header()
 {
   //bool Vault_base64::encode(const void *src, size_t src_len, Secure_string *encoded, Base64Format format)
   Secure_string encoded_header;
@@ -71,7 +121,7 @@ Secure_string Gkms_token::get_encoded_header()
   return encoded_header;
 }
 
-Secure_string Gkms_token::get_encoded_body()
+Secure_string Gkms_token_receiver::get_encoded_body()
 {
   Secure_string encoded_body;
   std::string request_body = get_request_body();
@@ -83,7 +133,7 @@ Secure_string Gkms_token::get_encoded_body()
   return encoded_body;
 }
 
-//Secure_string Gkms_token::get_sha256_request_dgst()
+//Secure_string Gkms_token_receiver::get_sha256_request_dgst()
 //{
   //Secure_string encoded_request = get_encoded_header() + '.' + get_encoded_body();
   //unsigned char digest_buf[256];
@@ -97,7 +147,7 @@ Secure_string Gkms_token::get_encoded_body()
 //}
 
 
-Secure_string Gkms_token::get_sha256_request_dgst(const Secure_string &encoded_request)
+Secure_string Gkms_token_receiver::get_sha256_request_dgst(const Secure_string &encoded_request)
 {
   EVP_MD_CTX *mdctx = NULL;
    
@@ -107,7 +157,10 @@ Secure_string Gkms_token::get_sha256_request_dgst(const Secure_string &encoded_r
 
   if (pem_key_file == NULL)
   {
-    logger->log(MY_ERROR_LEVEL, "Could not open file with private key");
+    std::ostringstream oss;
+    oss << "Could not open file with private key: ";
+    oss << conf_map["private_key"];
+    logger->log(MY_ERROR_LEVEL, oss.str().c_str());
     return "";
   }
 
