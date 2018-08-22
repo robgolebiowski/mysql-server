@@ -25,7 +25,7 @@ bool Gkms_storage::write_key(IKey *key)
   //"Authorization: Bearer [OAUTH2_TOKEN]"
   curl.set_token(token.token);
   Secure_string key_data(reinterpret_cast<const char*>(key->get_key_data()));
-  curl.set_content_length(key->get_key_data_size());
+  //curl.set_content_length(key->get_key_data_size());
   curl.set_post_data(key_data);
 
   if (curl.execute())
