@@ -92,7 +92,7 @@ public:
     Secure_ostringstream oss;
     oss << "Authorization: Bearer ";
     oss << token;
-    Secure_string auth_token;
+    Secure_string auth_token(oss.str());
     return (list = curl_slist_append(list, auth_token.c_str())) == NULL;
   }
 
@@ -102,7 +102,7 @@ public:
   }
   bool execute()
   {
-    if (!was_initialized)
+    if (!was_initialized || curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK)
       return true;
     CURLcode curl_res = curl_easy_perform(curl);
     curl_slist_free_all(list);

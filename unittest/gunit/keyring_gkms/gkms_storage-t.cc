@@ -57,7 +57,9 @@ namespace keyring_gkms_storage_unittest
   {
     ConfMap conf_map;
     conf_map["iss"] = "robert@keyring-182914.iam.gserviceaccount.com";
-    conf_map["scope"] = "https://www.googleapis.com/auth/cloudkms";
+    //https://www.googleapis.com/auth/devstorage.read_write
+    //conf_map["scope"] = "https://www.googleapis.com/auth/cloudkms";
+    conf_map["scope"] = "https://www.googleapis.com/auth/devstorage.read_write";
     conf_map["aud"] = "https://www.googleapis.com/oauth2/v4/token";
     conf_map["private_key"] = "/home/rob/google_key/private_key";
     conf_map["bucket_name"] = "keys-storage";
