@@ -345,6 +345,8 @@ enum Log_event_type {
   */
   PARTIAL_UPDATE_ROWS_EVENT = 39,
 
+  START_ENCRYPTION_EVENT = 159,
+
   /**
     Add new events here - right above this comment!
     Existing events (except ENUM_END_EVENT) should never change their numbers
