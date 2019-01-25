@@ -49,7 +49,8 @@ static void debug_corrupt_event(unsigned char *buffer, unsigned int event_len) {
       "corrupt_read_log_event", unsigned char type = buffer[EVENT_TYPE_OFFSET];
       if (type != binary_log::FORMAT_DESCRIPTION_EVENT &&
           type != binary_log::PREVIOUS_GTIDS_LOG_EVENT &&
-          type != binary_log::GTID_LOG_EVENT) {
+          type != binary_log::GTID_LOG_EVENT &&
+          type != binary_log::START_ENCRYPTION_EVENT) {
         int cor_pos = rand() % (event_len - BINLOG_CHECKSUM_LEN -
                                 LOG_EVENT_MINIMAL_HEADER_LEN) +
                       LOG_EVENT_MINIMAL_HEADER_LEN;
@@ -220,7 +221,7 @@ Binlog_read_error::Error_type binlog_event_deserialize(
                     : Binlog_read_error::TRUNC_EVENT);
   }
 
-  uint event_type = buf[EVENT_TYPE_OFFSET];
+  uchar event_type = buf[EVENT_TYPE_OFFSET];
 
   /*
     Sanity check for Format description event. This is needed because
@@ -371,6 +372,9 @@ Binlog_read_error::Error_type binlog_event_deserialize(
       break;
     case binary_log::PARTIAL_UPDATE_ROWS_EVENT:
       ev = new Update_rows_log_event(buf, fde);
+      break;
+    case binary_log::START_ENCRYPTION_EVENT:
+      ev = new Start_encryption_log_event(buf, fde);
       break;
     default:
       /*
