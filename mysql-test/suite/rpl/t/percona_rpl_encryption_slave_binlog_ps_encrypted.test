@@ -3,7 +3,7 @@
 --let $rpl_skip_start_slave= 1
 --source include/master-slave.inc
 
-# The test us done with prepared PS encrypted relay logs (encryption key is in
+# The test is done with prepared PS encrypted relay logs (encryption key is in
 # keyring_with_percona_binlog_key_for_slave):
 # 1) ps_encrypted_slave-relay-bin.000002 - was generated with statements:
 #    CREATE TABLE t1 (a INT);
