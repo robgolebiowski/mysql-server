@@ -62,6 +62,9 @@ INSERT INTO t1 (a) VALUES (5);
 --let $assert_cond= [SELECT COUNT(*) AS t1_rows FROM t1] = 5
 --source include/assert.inc
 
+--let $rpl_diff_statement= SELECT COUNT(*) FROM t1
+--source include/rpl_diff.inc
+
 --connection master
 DROP TABLE t1;
 

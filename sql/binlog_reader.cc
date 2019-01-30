@@ -50,7 +50,7 @@ static void debug_corrupt_event(unsigned char *buffer, unsigned int event_len) {
       if (type != binary_log::FORMAT_DESCRIPTION_EVENT &&
           type != binary_log::PREVIOUS_GTIDS_LOG_EVENT &&
           type != binary_log::GTID_LOG_EVENT &&
-          type != binary_log::START_ENCRYPTION_EVENT) {
+          type != binary_log::START_5_7_ENCRYPTION_EVENT) {
         int cor_pos = rand() % (event_len - BINLOG_CHECKSUM_LEN -
                                 LOG_EVENT_MINIMAL_HEADER_LEN) +
                       LOG_EVENT_MINIMAL_HEADER_LEN;
@@ -260,7 +260,7 @@ Binlog_read_error::Error_type binlog_event_deserialize(
   }
 
   if (event_type > fde->number_of_event_types &&
-      event_type != binary_log::START_ENCRYPTION_EVENT &&
+      event_type != binary_log::START_5_7_ENCRYPTION_EVENT &&
       /*
         Skip the event type check when simulating an unknown ignorable event.
       */
@@ -373,7 +373,7 @@ Binlog_read_error::Error_type binlog_event_deserialize(
     case binary_log::PARTIAL_UPDATE_ROWS_EVENT:
       ev = new Update_rows_log_event(buf, fde);
       break;
-    case binary_log::START_ENCRYPTION_EVENT:
+    case binary_log::START_5_7_ENCRYPTION_EVENT:
       ev = new Start_encryption_log_event(buf, fde);
       break;
     default:

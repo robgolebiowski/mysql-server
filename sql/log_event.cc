@@ -912,7 +912,7 @@ const char *Log_event::get_type_str(Log_event_type type) {
       return "XA_prepare";
     case binary_log::PARTIAL_UPDATE_ROWS_EVENT:
       return "Update_rows_partial";
-    case binary_log::START_ENCRYPTION_EVENT:
+    case binary_log::START_5_7_ENCRYPTION_EVENT:
       return "Start_encryption";
     default:
       return "Unknown"; /* impossible */

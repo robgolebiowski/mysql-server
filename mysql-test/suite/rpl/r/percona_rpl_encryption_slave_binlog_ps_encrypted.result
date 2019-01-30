@@ -19,5 +19,6 @@ include/start_slave.inc
 [connection master]
 include/sync_slave_sql_with_master.inc
 include/assert.inc [Slave shall have t1 with a 5 rows on it]
+include/rpl_diff.inc
 DROP TABLE t1;
 include/rpl_end.inc

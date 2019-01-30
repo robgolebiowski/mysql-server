@@ -1051,7 +1051,7 @@ int Binlog_sender::send_format_description_event(File_reader *reader,
     DBUG_RETURN(1);
   }
 
-  if (ev && ev->get_type_code() == binary_log::START_ENCRYPTION_EVENT) {
+  if (ev && ev->get_type_code() == binary_log::START_5_7_ENCRYPTION_EVENT) {
     Start_encryption_log_event *sele =
         down_cast<Start_encryption_log_event *>(ev);
 

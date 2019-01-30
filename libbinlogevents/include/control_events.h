@@ -178,7 +178,7 @@ class Start_encryption_event : public Binary_log_event {
 
   Start_encryption_event(uint crypto_scheme_arg, uint key_version_arg,
                          const unsigned char *nonce_arg) noexcept
-      : Binary_log_event(binary_log::START_ENCRYPTION_EVENT),
+      : Binary_log_event(binary_log::START_5_7_ENCRYPTION_EVENT),
         crypto_scheme(crypto_scheme_arg),
         key_version(key_version_arg) {
     memcpy(nonce, nonce_arg, NONCE_LENGTH);

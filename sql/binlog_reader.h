@@ -347,7 +347,7 @@ class Basic_binlog_file_reader {
       m_fde = dynamic_cast<Format_description_event &>(*ev);
     }
     else if (ev &&
-               ev->get_type_code() == binary_log::START_ENCRYPTION_EVENT &&
+               ev->get_type_code() == binary_log::START_5_7_ENCRYPTION_EVENT &&
                m_data_istream.start_decryption(
                    down_cast<Start_encryption_log_event *>(ev))) {
       delete ev;
@@ -428,7 +428,7 @@ class Basic_binlog_file_reader {
                         binary_log::BINLOG_CHECKSUM_ALG_OFF ||
                     m_fde.footer()->checksum_alg ==
                         binary_log::BINLOG_CHECKSUM_ALG_CRC32);
-      } else if (ev->get_type_code() == binary_log::START_ENCRYPTION_EVENT &&
+      } else if (ev->get_type_code() == binary_log::START_5_7_ENCRYPTION_EVENT &&
                  m_data_istream.start_decryption(
                      down_cast<Start_encryption_log_event *>(ev))) {
         delete ev;

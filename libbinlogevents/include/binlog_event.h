@@ -348,7 +348,7 @@ enum Log_event_type {
   /* New MySQL events are to be added right above this comment */
   MYSQL_END_EVENT,
 
-  START_ENCRYPTION_EVENT = 159,
+  START_5_7_ENCRYPTION_EVENT = 159,
   /**
     Add new events here - right above this comment!
     Existing events (except ENUM_END_EVENT) should never change their numbers

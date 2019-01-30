@@ -1456,7 +1456,7 @@ class Start_encryption_log_event final
                              const Format_description_event *description_event);
 
   Log_event_type get_type_code() noexcept {
-    return binary_log::START_ENCRYPTION_EVENT;
+    return binary_log::START_5_7_ENCRYPTION_EVENT;
   }
 
   size_t get_data_size() noexcept override { return EVENT_DATA_LENGTH; }
