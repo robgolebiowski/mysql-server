@@ -793,7 +793,7 @@ class Binary_log_event {
      is not to be handled, it does not exist in binlogs, it does not have a
      format).
   */
-  static constexpr int LOG_EVENT_TYPES = (MYSQL_END_EVENT - 1);
+  static const constexpr int LOG_EVENT_TYPES = (MYSQL_END_EVENT - 1);
 
   /**
     The lengths for the fixed data part of each event.
