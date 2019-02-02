@@ -28,7 +28,7 @@ protected:
   Secure_string get_encoded_body();
   Secure_string get_sha256_request_dgst(const Secure_string &encoded_request);
 
-  static Secure_string get_value_from_reponse(const Secure_string &key, const Secure_string &response);
+  //static Secure_string get_value_from_reponse(const Secure_string &key, const Secure_string &response);
   static int get_expires_in_from_reponse(const Secure_string &response);
   static Secure_string get_token_from_reponse(const Secure_string &response);
 
