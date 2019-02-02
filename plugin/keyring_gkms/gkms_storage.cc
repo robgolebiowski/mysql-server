@@ -1,5 +1,6 @@
 #include "gkms_storage.h"
 #include "gkms_token_receiver.h"
+#include "gkms_response_parser.h"
 #include "keyring_key.h"
 
 namespace keyring {
@@ -30,6 +31,13 @@ bool Gkms_storage::write_key(IKey *key)
 
   if (curl.execute())
     return true;
+
+  Secure_string response = curl.get_response();
+  Secure_string error_code, error_message;
+  if (Gkms_reponse_parser::are_there_errors_in_response(response, error_code, error_message)) {
+    //TODO: Add logger;
+    return true;
+  }
   return false;
 }
 

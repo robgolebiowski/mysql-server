@@ -1,5 +1,6 @@
 #include "gkms_token_receiver.h"
 #include "gkms_curl.h"
+#include "gkms_response_parser.h"
 #include <time.h>
 #include <chrono>
 #include "vault_base64.h"
@@ -54,12 +55,12 @@ Gkms_token Gkms_token_receiver::get_token()
 // TODO: Change to response, not reponse
 Secure_string Gkms_token_receiver::get_token_from_reponse(const Secure_string &response)
 {
-  return get_value_from_reponse("access_token", response);
+  return Gkms_reponse_parser::get_value_from_reponse("access_token", response);
 }
 
 int Gkms_token_receiver::get_expires_in_from_reponse(const Secure_string &response)
 {
-  Secure_string expires_in = get_value_from_reponse("expires_in", response);
+  Secure_string expires_in = Gkms_reponse_parser::get_value_from_reponse("expires_in", response);
   int expires_in_digit = 0;
   try 
   {
@@ -76,20 +77,6 @@ int Gkms_token_receiver::get_expires_in_from_reponse(const Secure_string &respon
     expires_in_digit = 0;
   }
   return expires_in_digit;
-}
-
-Secure_string Gkms_token_receiver::get_value_from_reponse(const Secure_string &key, const Secure_string &response)
-{
-  Secure_string key_marker = R"(")" + key + R"(":)";
-  std::size_t token_start_pos = response.find(key_marker);
-  token_start_pos += key_marker.length();//strnlen(R"("access_token":)", 200);
-  token_start_pos = response.find_first_not_of(R"(:" )", token_start_pos);
-  if (token_start_pos == std::string::npos)
-    return "";
-  std::size_t token_end_pos = response.find_first_of("\"\n}", token_start_pos);
-  if (token_end_pos == std::string::npos)
-    return "";
-  return response.substr(token_start_pos, token_end_pos - token_start_pos);
 }
 
 std::string Gkms_token_receiver::get_request_body()
