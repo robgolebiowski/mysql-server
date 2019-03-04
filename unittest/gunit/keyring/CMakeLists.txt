@@ -83,6 +83,7 @@ ENDIF(MERGE_UNITTESTS)
   FOREACH(test ${TESTS})
     SET(SRC_FILES ${test}-t.cc
         ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keyring_key.cc
+        ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keys_iterator.cc
         ${CMAKE_SOURCE_DIR}/plugin/keyring/common/keys_container.cc
         ${CMAKE_SOURCE_DIR}/plugin/keyring/buffered_file_io.cc
         ${CMAKE_SOURCE_DIR}/plugin/keyring/file_io.cc

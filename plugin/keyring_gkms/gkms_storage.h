@@ -23,7 +23,7 @@ public:
   }
 
   bool write_key(IKey *key);
-
+  bool get_key(IKey *key);
 protected:
   ILogger *logger;
   ConfMap conf_map;
