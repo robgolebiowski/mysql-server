@@ -19,7 +19,7 @@
 //#include "gkms_conf_parser.h"
 #include "mock_logger.h"
 #include "gkms_storage.h"
-#include "keyring_key.h"
+#include "gkms_key.h"
 #include "gkms_conf_map.h"
 //#include <mysql/plugin_keyring.h>
 //#include <sql_plugin_ref.h>
@@ -53,7 +53,7 @@ namespace keyring_gkms_storage_unittest
     ILogger *logger;
   };
 
-  TEST_F(Gkms_storage_test, Simple_upload_simple_fetch)
+  TEST_F(Gkms_storage_test, Upload_fetch_delete)
   {
     ConfMap conf_map;
     conf_map["iss"] = "robert@keyring-182914.iam.gserviceaccount.com";
@@ -65,7 +65,7 @@ namespace keyring_gkms_storage_unittest
     conf_map["bucket_name"] = "keys-storage";
 
     std::string sample_key_data("roberts_key");
-    Key key_to_add("Robert_add_key", "AES", "Robert", sample_key_data.c_str(), sample_key_data.length()+1);
+    Gkms_key key_to_add("Robert_add_key", "AES", "Robert", sample_key_data.c_str(), sample_key_data.length()+1);
 
 //bool Gkms_storage::write_key(IKey *key)
     Gkms_storage storage;
@@ -73,8 +73,12 @@ namespace keyring_gkms_storage_unittest
     storage.set_conf_map(conf_map); 
     EXPECT_FALSE(storage.write_key(&key_to_add));
 
-    Key key_to_fetch("Robert_add_key", NULL, "Robert", NULL, 0);
+    Gkms_key key_to_fetch("Robert_add_key", NULL, "Robert", NULL, 0);
     EXPECT_FALSE(storage.get_key(&key_to_fetch));
+
+    Gkms_key key_to_remove("Robert_add_key", nullptr, "Robert", nullptr, 0);
+    EXPECT_FALSE(storage.remove_key(&key_to_remove));
+
     //boost::movelib::unique_ptr<IKey> key_to_fetch(new T(key_id, NULL, user_id, NULL, 0));
 
     //std::string file_name("./conf_file");

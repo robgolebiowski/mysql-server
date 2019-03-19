@@ -65,6 +65,7 @@ IF (MERGE_UNITTESTS)
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_curl.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/vault_base64.cc
        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_storage.cc
+       ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_key.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/buffered_file_io.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/file_io.cc
        #${CMAKE_SOURCE_DIR}/plugin/keyring/buffer.cc
@@ -100,6 +101,7 @@ ENDIF(MERGE_UNITTESTS)
         ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_curl.cc
         ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/vault_base64.cc
         ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_storage.cc
+        ${CMAKE_SOURCE_DIR}/plugin/keyring_gkms/gkms_key.cc
         #${CMAKE_SOURCE_DIR}/plugin/keyring/buffered_file_io.cc
         #${CMAKE_SOURCE_DIR}/plugin/keyring/file_io.cc
         #${CMAKE_SOURCE_DIR}/plugin/keyring/buffer.cc

@@ -75,6 +75,11 @@ public:
     curl_res = curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
   }
 
+  void set_delete_data()
+  {
+    curl_res = curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+  }
+
   //bool set_token(const Secure_string &token)
   //{
     //return (curl_res = curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, token.c_str())) != CURLE_OK; 

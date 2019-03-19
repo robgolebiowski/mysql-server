@@ -58,6 +58,12 @@ void dump(const char *text,
   }
   fflush(stream);
 }
+
+static
+int my_trace(CURL *handle, curl_infotype type,
+             char *data, size_t size,
+             void *userp) MY_ATTRIBUTE((unused));
+
  
 static
 int my_trace(CURL *handle, curl_infotype type,
@@ -126,7 +132,8 @@ int my_trace(CURL *handle, curl_infotype type,
     CURLcode curl_res = CURLE_OK;
 
     curl_errbuf[0] = '\0';
-     struct data config;
+     struct data config MY_ATTRIBUTE((unused));
+
  
   config.trace_ascii = 1; //[> enable ascii tracing <] 
     //TODO: is gcloud ca needed here ?
@@ -139,10 +146,13 @@ int my_trace(CURL *handle, curl_infotype type,
         (curl_res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_response_memory)) != CURLE_OK ||
         (curl_res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(&read_data_ss))) != CURLE_OK ||
         (curl_res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list)) != CURLE_OK ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true)) != CURLE_OK ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace)) != CURLE_OK ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_DEBUGDATA, &config)) != CURLE_OK ||
-        (curl_res = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L)) != CURLE_OK
+        (curl_res = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true)) != CURLE_OK 
+        //**** Uncomment below lines to get the CURL debug output
+        // ||
+        //(curl_res = curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, my_trace)) != CURLE_OK ||
+        //(curl_res = curl_easy_setopt(curl, CURLOPT_DEBUGDATA, &config)) != CURLE_OK ||
+        //(curl_res = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L)) != CURLE_OK
+        //**** End of uncomment for debug
 
 
      

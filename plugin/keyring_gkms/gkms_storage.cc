@@ -101,4 +101,36 @@ bool Gkms_storage::get_key(IKey *key)
   return false;
 }
 
+bool Gkms_storage::remove_key(IKey *key)
+{
+  Gkms_curl curl(logger);
+  Gkms_token_receiver token_receiver(logger, conf_map); // TODO: Change this to some abstraction layer - token will be received when expires
+  Gkms_token token = token_receiver.get_token();
+
+  if (curl.init())
+    return true;
+
+  Secure_ostringstream oss_url;
+  oss_url << "https://www.googleapis.com/storage/v1/b/";
+  oss_url << conf_map["bucket_name"];
+  oss_url << "/o/";
+  oss_url << *(key->get_key_signature());
+  //oss_url << "?alt=media";
+  Secure_string url = oss_url.str();
+  curl.set_url(url);
+  curl.set_token(token.token);
+  curl.set_delete_data();
+
+  if (curl.execute())
+    return true;
+
+  Secure_string response = curl.get_response();
+  Secure_string error_code, error_message;
+  if (Gkms_reponse_parser::are_there_errors_in_response(response, error_code, error_message)) {
+    //TODO: Add logger;
+    return true;
+  }
+  return false;
+}
+
 }

@@ -49,6 +49,7 @@ MYSQL_ADD_PLUGIN(keyring_gkms
                  #gkms_token.cc
                  gkms_token_receiver.cc
                  gkms_storage.cc
+                 gkms_key.cc
                  vault_base64.cc
                  #vault_io.cc
                  #vault_key.cc
